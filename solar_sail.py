@@ -44,6 +44,8 @@ import numpy as np
 import scipy.integrate as integrate
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
+
 
 def ideal_SRP(S_0, c, r_0, r):
   ''' Calculate the Solar Radiation Pressure acting on the sail for
@@ -162,18 +164,18 @@ def calc_accel(beta, b1, b2, b3, mu, r, alpha, e_r, n):
   return [(beta/(b1+b2+b3))*(mu/r**2)*math.cos(alpha_deg)*(b1*e_r[i] + (b2*math.cos(alpha_deg))*n[i]) for i in range(len(n))]
 
 
-
 if __name__ == "__main__":
   t0 = 0
-  t_step = 0.001 # Time Step [days]
+  t_step = 0.01 # Time Step [days]
   s_in_d = 86400  # Number of seconds in a day [sec/day]
   m = 4 # Mass of sail + 6U cubesat [kg]
   A = 625  # Area of solar sail [m^2]
   v_0 = 29.77  # Initial y component velocity of satellite [km/s]
-  alpha_angle = 10  # Angle of face of 
+  alpha_angle = 45  # Angle of face of 
   m_sun = 1.9891e30  # Mass of sun [kg]
   r_sun = 696000  # Radius of sun [km]
   gamma = math.log(2) / 1368 / 2  # Half life solar radiation dose (half of 1368 constant)
+  save_graph = True
 
 
   materials = {
@@ -184,7 +186,7 @@ if __name__ == "__main__":
       "e_b" : 0.24,       # Emittance
       "d" : 0.1043,       # Reflectance divided 8.816; diffusivity
       "s" : 0,            # Specular reflection factor - (1-d)/rho
-      "deg_factor" : 0.1 # User-set degradation factor
+      "deg_factor" : 0.95 # User-set degradation factor
     },
 
     "CP1" : {
@@ -204,7 +206,7 @@ if __name__ == "__main__":
       "e_b" : 0.25,       # Emittance
       "d" : 0.104,        # Reflectance divided 8.816; diffusivity
       "s" : 0,            # Specular reflection factor - (1-d)/rho
-      "deg_factor" : 0.15 # User-set degradation factor
+      "deg_factor" : 0.01 # User-set degradation factor
     },
 
     "Kapton" : {
@@ -214,7 +216,7 @@ if __name__ == "__main__":
       "e_b" : 0.48,       # Emittance
       "d" : 0.102,        # Reflectance divided 8.816; diffusivity
       "s" : 0,            # Specular reflection factor - (1-d)/rho
-      "deg_factor" : 0.15 # User-set degradation factor
+      "deg_factor" : 0.01 # User-set degradation factor
     },
 
     "APICAL AH" : {
@@ -224,7 +226,7 @@ if __name__ == "__main__":
       "e_b" : 0.798,      # Emittance
       "d" : 0.039,        # Reflectance divided 8.816; diffusivity
       "s" : 0,            # Specular reflection factor - (1-d)/rho
-      "deg_factor" : 0.15 # User-set degradation factor
+      "deg_factor" : 0.01 # User-set degradation factor
     },
   }
 
@@ -308,20 +310,30 @@ if __name__ == "__main__":
       print("You made it to Mars on day " +  str(i*t_step) + " using " + material)
 
     x,y = zip(*materials[material]["p"])
-    plt.plot(x, y)
+    plt.plot(x, y, label = material)
     
 
 
-  Drawing_colored_circle = plt.Circle(( 0 , 0 ), r_mars*0.025, color='y')
+  sun = plt.Circle(( 0 , 0 ), r_mars*0.025, color='y')
   start_point = plt.Circle((au, 0), r_mars*0.02, color='k')
-
+  martian_orbit = plt.Circle((0,0), r_mars, color = 'k', fill = False)
+  earth_orbit = plt.Circle((0,0), au, color = 'k', fill = False)
   
   axes.set_aspect(1)
   
-  axes.add_artist( Drawing_colored_circle )
+  axes.add_artist(sun)
   axes.add_artist(start_point)
-  plt.title( 'Colored Circle' )
-  plt.xlim(-1.2*r_mars,1.2*r_mars)
-  plt.ylim(-1.2*r_mars,1.2*r_mars)   
+  axes.add_artist(martian_orbit)
+  axes.add_artist(earth_orbit)
+  plt.legend(loc="upper left")
+  plt.title('Solar Sail Trajectories')
+  plt.xlim(-1.1*r_mars,1.1*r_mars)
+  plt.ylim(-1.1*r_mars,1.1*r_mars)   
+  if save_graph:
+    file_name_base = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_'
+    file_name_end = ".png"
+    orbit_plot = file_name_base + "orbit_alphang_" + str(alpha_angle) + "_sailsize_" + str(A) + "_m_" + str(m) + file_name_end
+    plt.savefig(orbit_plot, bbox_inches = "tight", dpi = 300)
   plt.show()
+  
     #print(S_0*r_0**2*integrate.quad(lambda x: math.cosd(alpha)/r**2 ,t0,t))

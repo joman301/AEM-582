@@ -138,7 +138,7 @@ def calc_solar_constant(au_in_km, one_au_const, current_r):
   ''' Find the new solar constant based off the inverse square law,
   runs every time step to integrate numerically
   '''
-  return (au_in_km/current_r)**2 * one_au_const
+  return (au_in_km/current_r**2) * one_au_const
 
 
 def calc_optical_degradation(coeff, coeff_inf, gamma, sigma_t):
@@ -168,8 +168,8 @@ if __name__ == "__main__":
   t0 = 0
   t_step = 0.01 # Time Step [days]
   s_in_d = 86400  # Number of seconds in a day [sec/day]
-  m = 4 # Mass of sail + 6U cubesat [kg]
-  A = 625  # Area of solar sail [m^2]
+  m = 8 # Mass of sail + 6U cubesat [kg]
+  A = 58.1  # Area of solar sail [m^2]
   v_0 = 29.77  # Initial y component velocity of satellite [km/s]
   alpha_angle = 45  # Angle of face of 
   m_sun = 1.9891e30  # Mass of sun [kg]
@@ -186,7 +186,7 @@ if __name__ == "__main__":
       "e_b" : 0.24,       # Emittance
       "d" : 0.1043,       # Reflectance divided 8.816; diffusivity
       "s" : 0,            # Specular reflection factor - (1-d)/rho
-      "deg_factor" : 0.95 # User-set degradation factor
+      "deg_factor" : 0.01 # User-set degradation factor
     },
 
     "CP1" : {
@@ -247,9 +247,6 @@ if __name__ == "__main__":
   
   # Create all shared constants/ calculated constants that aren't looped for materials
   populate_dicts(materials, r_0, v_0, alpha_angle)
-  # materials["APICAL AH"]["v"][0][1] = 1000
-  # materials["CP1"]["v"][0][1] = 900
-  # materials["Kapton"]["v"][0][1] = 800
 
   figure, axes = plt.subplots()
   
@@ -279,8 +276,7 @@ if __name__ == "__main__":
       a = calc_accel(beta, b1, b2, b3, mu, materials[material]["r"][i], materials[material]["angle_alpha"], e_r, n)
       F_sail = [m*x for x in a]
       F_sun = [(6.67430e-11 * m * m_sun / (materials[material]["r"][i]*1000)**2)*x for x in e_r]
-      # F_sail = 0
-     # F_total_mag = (F_sail - F_sun) / 1000  # Converting to km/s
+
       F_total_mag = [(y - z)/1000 for y,z in zip(F_sail, F_sun)]
       #F_vector = [F_total_mag*math.cos(sail_theta), F_total_mag*math.sin(sail_theta)]
       materials[material]["a"].append([x/m for x in F_total_mag])
@@ -336,4 +332,3 @@ if __name__ == "__main__":
     plt.savefig(orbit_plot, bbox_inches = "tight", dpi = 300)
   plt.show()
   
-    #print(S_0*r_0**2*integrate.quad(lambda x: math.cosd(alpha)/r**2 ,t0,t))
